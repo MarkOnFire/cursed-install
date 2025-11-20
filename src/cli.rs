@@ -38,6 +38,12 @@ pub enum Stage {
     Locale,
     /// Optimization
     Optimization,
+    /// Container orchestration
+    Container,
+    /// AI model loading
+    Ai,
+    /// Cloud provisioning
+    Cloud,
 }
 
 impl Stage {
@@ -62,6 +68,9 @@ impl Stage {
             Stage::Retro,
             Stage::Locale,
             Stage::Optimization,
+            Stage::Container,
+            Stage::Ai,
+            Stage::Cloud,
         ]
     }
 }

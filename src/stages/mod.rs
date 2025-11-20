@@ -1,7 +1,10 @@
+mod ai;
 mod bios;
 mod boot;
 mod bootloader;
+mod cloud;
 mod compilation;
+mod container;
 mod database;
 mod deno;
 mod drivers;
@@ -20,10 +23,13 @@ mod xorg;
 use crate::cli::Stage;
 use std::io;
 
+pub use ai::AiStage;
 pub use bios::BiosStage;
 pub use boot::BootStage;
 pub use bootloader::BootloaderStage;
+pub use cloud::CloudStage;
 pub use compilation::CompilationStage;
+pub use container::ContainerStage;
 pub use database::DatabaseStage;
 pub use deno::DenoStage;
 pub use drivers::DriversStage;
@@ -45,15 +51,18 @@ pub trait InstallationStage {
     fn run(&self, exit_check: &dyn Fn() -> bool) -> io::Result<()>;
 }
 
+use crate::config::SimulationConfig;
+
 /// Get selected installation stages in order
 pub fn selected_stages(stages: &[Stage]) -> Vec<Box<dyn InstallationStage>> {
     let mut result = Vec::new();
+    let config = SimulationConfig::default();
 
     for stage in stages {
         let stage_impl: Box<dyn InstallationStage> = match stage {
-            Stage::Bios => Box::new(BiosStage),
-            Stage::Boot => Box::new(BootStage::new()),
-            Stage::Bootloader => Box::new(BootloaderStage),
+            Stage::Bios => Box::new(BiosStage::new(config.bios.clone())),
+            Stage::Boot => Box::new(BootStage::new(config.boot.clone())),
+            Stage::Bootloader => Box::new(BootloaderStage::new(config.bootloader.clone())),
             Stage::Filesystem => Box::new(FilesystemStage),
             Stage::System => Box::new(SystemStage),
             Stage::Network => Box::new(NetworkStage),
@@ -69,6 +78,9 @@ pub fn selected_stages(stages: &[Stage]) -> Vec<Box<dyn InstallationStage>> {
             Stage::Retro => Box::new(RetroSoftwareStage),
             Stage::Locale => Box::new(LocaleStage),
             Stage::Optimization => Box::new(OptimizationStage),
+            Stage::Container => Box::new(ContainerStage::new(config.container.clone())),
+            Stage::Ai => Box::new(AiStage::new(config.ai.clone())),
+            Stage::Cloud => Box::new(CloudStage::new(config.cloud.clone())),
         };
         result.push(stage_impl);
     }

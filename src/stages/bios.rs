@@ -1,4 +1,5 @@
 use super::InstallationStage;
+use crate::config::BiosConfig;
 use crate::ui::{ProgressBar, ProgressStyle, Spinner};
 use chrono::Local;
 use colored::*;
@@ -8,95 +9,9 @@ use std::thread;
 use std::time::Duration;
 use sysinfo::System;
 
-struct BiosConfig {
-    vendor: &'static str,
-    version: &'static str,
-    new_version: &'static str,
-    bios_date: &'static str,
-
-    header_delay: u64,
-    post_start_delay: u64,
-    cpu_detect_time: u64,
-    cpu_cores_time: u64,
-    cpu_freq_time: u64,
-    memory_test_time: u64,
-    memory_details_time: u64,
-    cmos_warning_time: u64,
-
-    ide_master_time: u64,
-    ide_slave_time: u64,
-    pci_scan_time: u64,
-    pci_device_time: u64,
-    network_detect_time: u64,
-    usb_detect_time: u64,
-    system_info_time: u64,
-    uuid_time: u64,
-    boot_priority_time: u64,
-    boot_display_time: u64,
-
-    firmware_header_delay: u64,
-    backup_time: u64,
-    verify_time: u64,
-    warning_delay: u64,
-    erase_min: u64,
-    erase_max: u64,
-    write_min: u64,
-    write_max: u64,
-    verify_min: u64,
-    verify_max: u64,
-    complete_time: u64,
-    escd_time: u64,
-    success_delay: u64,
-
-    cmos_error_chance: f64,
+pub struct BiosStage {
+    config: BiosConfig,
 }
-
-impl BiosConfig {
-    const DEFAULT: Self = Self {
-        vendor: "American Megatrends BIOS (C)2003-2025",
-        version: "AMIBIOS v08.00.15",
-        new_version: "v08.00.16",
-        bios_date: "11/15/2025",
-
-        header_delay: 400,
-        post_start_delay: 400,
-        cpu_detect_time: 800,
-        cpu_cores_time: 600,
-        cpu_freq_time: 500,
-        memory_test_time: 1200,
-        memory_details_time: 700,
-        cmos_warning_time: 800,
-
-        ide_master_time: 900,
-        ide_slave_time: 400,
-        pci_scan_time: 800,
-        pci_device_time: 500,
-        network_detect_time: 600,
-        usb_detect_time: 500,
-        system_info_time: 500,
-        uuid_time: 700,
-        boot_priority_time: 600,
-        boot_display_time: 500,
-
-        firmware_header_delay: 600,
-        backup_time: 1800,
-        verify_time: 1200,
-        warning_delay: 800,
-        erase_min: 1500,
-        erase_max: 2500,
-        write_min: 3000,
-        write_max: 5000,
-        verify_min: 2000,
-        verify_max: 3500,
-        complete_time: 800,
-        escd_time: 1000,
-        success_delay: 600,
-
-        cmos_error_chance: 0.25,
-    };
-}
-
-pub struct BiosStage;
 
 struct SystemInfo {
     cpu_brand: String,
@@ -110,6 +25,10 @@ struct SystemInfo {
 }
 
 impl BiosStage {
+    pub fn new(config: BiosConfig) -> Self {
+        Self { config }
+    }
+
     fn get_system_info() -> SystemInfo {
         use sysinfo::{Disks, Networks};
 
@@ -159,7 +78,6 @@ impl InstallationStage for BiosStage {
         println!("\n{}", format!("> {}", self.name()).bright_yellow().bold());
         println!();
 
-        let cfg = BiosConfig::DEFAULT;
         let mut rng = rand::thread_rng();
         let sys_info = Self::get_system_info();
 
@@ -176,8 +94,8 @@ impl InstallationStage for BiosStage {
             "{}",
             "╔═══════════════════════════════════════════════════════════════╗".bright_cyan()
         );
-        println!("{}", format!("║  {:<61}║", cfg.vendor).bright_cyan());
-        println!("{}", format!("║  {:<61}║", cfg.version).bright_cyan());
+        println!("{}", format!("║  {:<61}║", self.config.vendor).bright_cyan());
+        println!("{}", format!("║  {:<61}║", self.config.version).bright_cyan());
         println!(
             "{}",
             "╚═══════════════════════════════════════════════════════════════╝".bright_cyan()
@@ -185,7 +103,7 @@ impl InstallationStage for BiosStage {
         println!();
         println!(
             "{}",
-            format!("BIOS Date: {}  S/N: {}", cfg.bios_date, bios_serial).dimmed()
+            format!("BIOS Date: {}  S/N: {}", self.config.bios_date, bios_serial).dimmed()
         );
         println!(
             "{}",
@@ -197,25 +115,25 @@ impl InstallationStage for BiosStage {
             .dimmed()
         );
         println!("{}", format!("System Name: {}", sys_info.hostname).dimmed());
-        thread::sleep(Duration::from_millis(cfg.header_delay));
+        thread::sleep(Duration::from_millis(self.config.header_delay));
 
         println!();
         println!(
             "{}",
             "Performing POST (Power-On Self Test)...".bright_white()
         );
-        thread::sleep(Duration::from_millis(cfg.post_start_delay));
+        thread::sleep(Duration::from_millis(self.config.post_start_delay));
 
         let mut spinner = Spinner::new();
 
         spinner.animate(
             &format!("CPU: {}", sys_info.cpu_brand),
-            cfg.cpu_detect_time,
+            self.config.cpu_detect_time,
             exit_check,
         )?;
         spinner.animate(
             &format!("CPU Cores: {} physical", sys_info.cpu_count),
-            cfg.cpu_cores_time,
+            self.config.cpu_cores_time,
             exit_check,
         )?;
 
@@ -223,7 +141,7 @@ impl InstallationStage for BiosStage {
             let freq_ghz = sys_info.cpu_freq as f64 / 1000.0;
             spinner.animate(
                 &format!("CPU Speed: {:.2} GHz", freq_ghz),
-                cfg.cpu_freq_time,
+                self.config.cpu_freq_time,
                 exit_check,
             )?;
         }
@@ -237,7 +155,7 @@ impl InstallationStage for BiosStage {
 
         let mem_progress = ProgressBar::new(ProgressStyle::Hash);
         let steps = 40;
-        let delay = cfg.memory_test_time / steps;
+        let delay = self.config.memory_test_time / steps;
 
         for i in 0..=steps {
             if exit_check() {
@@ -261,16 +179,16 @@ impl InstallationStage for BiosStage {
                 "Total System Memory: {:.2} GB ({} MB)",
                 memory_gb, memory_mb
             ),
-            cfg.memory_details_time,
+            self.config.memory_details_time,
             exit_check,
         )?;
 
-        if rng.gen_bool(cfg.cmos_error_chance) {
+        if rng.gen_bool(self.config.cmos_error_chance) {
             println!(
                 "{}",
                 "WARNING: CMOS checksum invalid, loading defaults".yellow()
             );
-            thread::sleep(Duration::from_millis(cfg.cmos_warning_time));
+            thread::sleep(Duration::from_millis(self.config.cmos_warning_time));
         }
 
         println!();
@@ -278,22 +196,22 @@ impl InstallationStage for BiosStage {
 
         print!("  Primary Master   [0x1F0-0x1F7]: ");
         io::stdout().flush()?;
-        thread::sleep(Duration::from_millis(cfg.ide_master_time));
+        thread::sleep(Duration::from_millis(self.config.ide_master_time));
         println!("{}", "WDC WD2000JB-00GVC0".bright_green());
 
         print!("  Primary Slave    [0x1F0-0x1F7]: ");
         io::stdout().flush()?;
-        thread::sleep(Duration::from_millis(cfg.ide_slave_time));
+        thread::sleep(Duration::from_millis(self.config.ide_slave_time));
         println!("{}", "None".dimmed());
 
         print!("  Secondary Master [0x170-0x177]: ");
         io::stdout().flush()?;
-        thread::sleep(Duration::from_millis(cfg.ide_master_time));
+        thread::sleep(Duration::from_millis(self.config.ide_master_time));
         println!("{}", "ATAPI CD-ROM".bright_green());
 
         print!("  Secondary Slave  [0x170-0x177]: ");
         io::stdout().flush()?;
-        thread::sleep(Duration::from_millis(cfg.ide_slave_time));
+        thread::sleep(Duration::from_millis(self.config.ide_slave_time));
         println!("{}", "None".dimmed());
 
         println!();
@@ -304,7 +222,7 @@ impl InstallationStage for BiosStage {
         io::stdout().flush()?;
 
         let steps = 30;
-        let delay = cfg.pci_scan_time / steps;
+        let delay = self.config.pci_scan_time / steps;
         for i in 0..=steps {
             if exit_check() {
                 return Err(io::Error::new(io::ErrorKind::Interrupted, "User interrupt"));
@@ -326,38 +244,38 @@ impl InstallationStage for BiosStage {
             "  Found {} - VGA Compatible Controller",
             pci_addr1.bright_cyan()
         );
-        thread::sleep(Duration::from_millis(cfg.pci_device_time));
+        thread::sleep(Duration::from_millis(self.config.pci_device_time));
         println!("  Found {} - Ethernet Controller", pci_addr2.bright_cyan());
-        thread::sleep(Duration::from_millis(cfg.pci_device_time));
+        thread::sleep(Duration::from_millis(self.config.pci_device_time));
         println!("  Found {} - SMBus Controller", "00:1F.3".bright_cyan());
-        thread::sleep(Duration::from_millis(cfg.pci_device_time));
+        thread::sleep(Duration::from_millis(self.config.pci_device_time));
 
         println!();
         spinner.animate(
             &format!("Network Adapters: {} detected", sys_info.network_count),
-            cfg.network_detect_time,
+            self.config.network_detect_time,
             exit_check,
         )?;
         spinner.animate(
             "USB Controller: UHCI/EHCI Compatible",
-            cfg.usb_detect_time,
+            self.config.usb_detect_time,
             exit_check,
         )?;
         spinner.animate(
             "USB Device(s): 0 connected",
-            cfg.usb_detect_time,
+            self.config.usb_detect_time,
             exit_check,
         )?;
 
         println!();
         spinner.animate(
             &format!("Host OS: {}", sys_info.os_name),
-            cfg.system_info_time,
+            self.config.system_info_time,
             exit_check,
         )?;
         spinner.animate(
             &format!("Storage Devices: {} disk(s) found", sys_info.disk_count),
-            cfg.system_info_time,
+            self.config.system_info_time,
             exit_check,
         )?;
 
@@ -371,16 +289,16 @@ impl InstallationStage for BiosStage {
         );
         spinner.animate(
             &format!("System UUID: {}", system_uuid),
-            cfg.uuid_time,
+            self.config.uuid_time,
             exit_check,
         )?;
 
         println!();
-        spinner.animate("Boot Device Priority:", cfg.boot_priority_time, exit_check)?;
+        spinner.animate("Boot Device Priority:", self.config.boot_priority_time, exit_check)?;
         println!("  1st: {}", "Hard Disk Drive".bright_green());
         println!("  2nd: {}", "CD-ROM Drive".dimmed());
         println!("  3rd: {}", "Network Boot".dimmed());
-        thread::sleep(Duration::from_millis(cfg.boot_display_time));
+        thread::sleep(Duration::from_millis(self.config.boot_display_time));
 
         println!();
         println!(
@@ -397,16 +315,16 @@ impl InstallationStage for BiosStage {
             "{}",
             "═══════════════════════════════════════════════════════════════".bright_yellow()
         );
-        thread::sleep(Duration::from_millis(cfg.firmware_header_delay));
+        thread::sleep(Duration::from_millis(self.config.firmware_header_delay));
 
         spinner.animate(
             "Backing up current BIOS to NVRAM...",
-            cfg.backup_time,
+            self.config.backup_time,
             exit_check,
         )?;
         spinner.animate(
             "Verifying backup integrity... CRC32 OK",
-            cfg.verify_time,
+            self.config.verify_time,
             exit_check,
         )?;
 
@@ -422,32 +340,32 @@ impl InstallationStage for BiosStage {
             "  System damage may occur if interrupted!".yellow().bold()
         );
         println!();
-        thread::sleep(Duration::from_millis(cfg.warning_delay));
+        thread::sleep(Duration::from_millis(self.config.warning_delay));
 
         let progress = ProgressBar::new(ProgressStyle::Block);
         progress.animate(
             "Erasing flash sectors:",
-            rng.gen_range(cfg.erase_min..cfg.erase_max),
+            rng.gen_range(self.config.erase_min..self.config.erase_max),
             exit_check,
         )?;
 
         progress.animate(
             "Writing new firmware:",
-            rng.gen_range(cfg.write_min..cfg.write_max),
+            rng.gen_range(self.config.write_min..self.config.write_max),
             exit_check,
         )?;
 
         progress.animate(
             "Verifying firmware:",
-            rng.gen_range(cfg.verify_min..cfg.verify_max),
+            rng.gen_range(self.config.verify_min..self.config.verify_max),
             exit_check,
         )?;
 
         println!();
-        spinner.animate("Firmware update complete!", cfg.complete_time, exit_check)?;
+        spinner.animate("Firmware update complete!", self.config.complete_time, exit_check)?;
         spinner.animate(
             "Updating ESCD (Extended System Configuration Data)...",
-            cfg.escd_time,
+            self.config.escd_time,
             exit_check,
         )?;
 
@@ -456,7 +374,7 @@ impl InstallationStage for BiosStage {
             "{}",
             format!(
                 "BIOS update successful - {} -> {}",
-                cfg.version, cfg.new_version
+                self.config.version, self.config.new_version
             )
             .bright_green()
             .bold()
@@ -465,7 +383,7 @@ impl InstallationStage for BiosStage {
             "{}",
             "System will initialize with new firmware".bright_green()
         );
-        thread::sleep(Duration::from_millis(cfg.success_delay));
+        thread::sleep(Duration::from_millis(self.config.success_delay));
 
         Ok(())
     }

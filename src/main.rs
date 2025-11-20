@@ -1,8 +1,10 @@
 mod build_logs;
 mod cli;
+mod config;
 mod deno_logs;
 mod installer;
 mod kernel_logs;
+mod log_generator;
 mod messages;
 mod stages;
 mod ui;
@@ -11,6 +13,7 @@ use clap::Parser;
 use cli::Cli;
 use colored::*;
 use installer::Installer;
+use rand::seq::SliceRandom;
 use std::io;
 
 fn main() {
@@ -21,7 +24,10 @@ fn main() {
 
 fn run_installer() -> io::Result<()> {
     let cli = Cli::parse();
-    let stages = cli.get_stages();
+    let mut stages = cli.get_stages();
+    
+    let mut rng = rand::thread_rng();
+    stages.shuffle(&mut rng);
 
     let mut installer = Installer::new(stages);
     installer.run()
