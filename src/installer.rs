@@ -56,12 +56,6 @@ impl Installer {
             "=================================================================".bright_cyan()
         );
         println!();
-        println!(
-            "{}",
-            "*** THIS IS A SIMULATION - NO ACTUAL INSTALLATION OCCURRING ***".bright_yellow()
-        );
-        println!("{}", "Press Ctrl+C to exit at any time".dimmed());
-        println!();
         thread::sleep(Duration::from_millis(1500));
     }
 
