@@ -40,4 +40,4 @@ docker run -it --rm --init install-nothing
 
 ## License
 
-Do whatever you want with it.
+Do whatever you want with it. Well, except for movies. If you use this in a movie, credit me or something.
