@@ -74,7 +74,7 @@ impl Stage {
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "install-nothing",
+    name = "cursed-install",
     version,
     about = "A nostalgic infinite installer simulator",
     long_about = "Universal System Installer - simulates an endless installation process.\n\

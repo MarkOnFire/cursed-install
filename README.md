@@ -1,4 +1,4 @@
-# install-nothing
+# cursed-install
 
 A terminal application that simulates installing things. It doesn't actually install anything.
 
@@ -10,11 +10,11 @@ But it might know more about you than you'd expect.
 
 ### Download binary
 
-Grab the latest binary for your platform from [Releases](https://github.com/buyukakyuz/install-nothing/releases)
+Grab the latest binary for your platform from [Releases](https://github.com/MarkOnFire/cursed-install/releases)
 
 ```bash
-chmod +x install-nothing-*
-./install-nothing-linux-x86_64
+chmod +x cursed-install-*
+./cursed-install-linux-x86_64
 ```
 
 ### Build from source
@@ -99,12 +99,12 @@ All scan results stay in memory for the duration of the process and are discarde
 
 Build
 ```bash
-docker build -t install-nothing .
+docker build -t cursed-install .
 ```
 
 Run
 ```bash
-docker run -it --rm --init install-nothing
+docker run -it --rm --init cursed-install
 ```
 
 Note: awareness mode has limited data in Docker containers (no home directory, no browser profiles, etc.). The installer gracefully falls back to generic messages.

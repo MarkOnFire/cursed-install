@@ -19,28 +19,28 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            artifact_name: install-nothing
-            asset_name: install-nothing-linux-x86_64
+            artifact_name: cursed-install
+            asset_name: cursed-install-linux-x86_64
 
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
-            artifact_name: install-nothing
-            asset_name: install-nothing-linux-aarch64
+            artifact_name: cursed-install
+            asset_name: cursed-install-linux-aarch64
 
           - target: x86_64-apple-darwin
             os: macos-latest
-            artifact_name: install-nothing
-            asset_name: install-nothing-macos-x86_64
+            artifact_name: cursed-install
+            asset_name: cursed-install-macos-x86_64
 
           - target: aarch64-apple-darwin
             os: macos-latest
-            artifact_name: install-nothing
-            asset_name: install-nothing-macos-aarch64
+            artifact_name: cursed-install
+            asset_name: cursed-install-macos-aarch64
 
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            artifact_name: install-nothing.exe
-            asset_name: install-nothing-windows-x86_64.exe
+            artifact_name: cursed-install.exe
+            asset_name: cursed-install-windows-x86_64.exe
 
     steps:
       - name: Checkout
@@ -85,19 +85,19 @@ jobs:
         run: |
           mkdir -p release
 
-          cp artifacts/install-nothing-linux-x86_64/install-nothing release/install-nothing-linux-x86_64
-          chmod +x release/install-nothing-linux-x86_64
+          cp artifacts/cursed-install-linux-x86_64/cursed-install release/cursed-install-linux-x86_64
+          chmod +x release/cursed-install-linux-x86_64
 
-          cp artifacts/install-nothing-linux-aarch64/install-nothing release/install-nothing-linux-aarch64
-          chmod +x release/install-nothing-linux-aarch64
+          cp artifacts/cursed-install-linux-aarch64/cursed-install release/cursed-install-linux-aarch64
+          chmod +x release/cursed-install-linux-aarch64
 
-          cp artifacts/install-nothing-macos-x86_64/install-nothing release/install-nothing-macos-x86_64
-          chmod +x release/install-nothing-macos-x86_64
+          cp artifacts/cursed-install-macos-x86_64/cursed-install release/cursed-install-macos-x86_64
+          chmod +x release/cursed-install-macos-x86_64
 
-          cp artifacts/install-nothing-macos-aarch64/install-nothing release/install-nothing-macos-aarch64
-          chmod +x release/install-nothing-macos-aarch64
+          cp artifacts/cursed-install-macos-aarch64/cursed-install release/cursed-install-macos-aarch64
+          chmod +x release/cursed-install-macos-aarch64
 
-          cp artifacts/install-nothing-windows-x86_64.exe/install-nothing.exe release/install-nothing-windows-x86_64.exe
+          cp artifacts/cursed-install-windows-x86_64.exe/cursed-install.exe release/cursed-install-windows-x86_64.exe
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

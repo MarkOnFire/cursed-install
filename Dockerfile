@@ -17,9 +17,9 @@ FROM debian:bookworm-slim
 
 WORKDIR /app
 
-COPY --from=builder /app/target/release/install-nothing /usr/local/bin/install-nothing
+COPY --from=builder /app/target/release/cursed-install /usr/local/bin/cursed-install
 
 RUN useradd -m -u 1000 -U appuser
 USER appuser
 
-ENTRYPOINT ["install-nothing"]
+ENTRYPOINT ["cursed-install"]

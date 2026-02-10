@@ -1,9 +1,9 @@
 [package]
-name = "install-nothing"
-version = "0.5.0"
+name = "cursed-install"
+version = "0.6.0"
 edition = "2021"
-authors = ["Kerim Buyukakyuz"]
-description = "A nostalgic infinite installer simulator"
+authors = ["Kerim Buyukakyuz", "Mark Riechers"]
+description = "A nostalgic infinite installer simulator that knows too much about you"
 
 [dependencies]
 crossterm = "0.27"
