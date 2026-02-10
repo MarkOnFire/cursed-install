@@ -92,6 +92,10 @@ pub struct Cli {
     /// Exclude specific stages from installation
     #[arg(short, long, value_enum, num_args = 0.., conflicts_with = "stages")]
     pub exclude: Vec<Stage>,
+
+    /// Disable awareness mode (no filesystem scanning)
+    #[arg(long = "normal", short = 'n')]
+    pub normal_mode: bool,
 }
 
 impl Cli {
@@ -121,6 +125,7 @@ mod tests {
             stages: vec![],
             all: false,
             exclude: vec![],
+            normal_mode: false,
         };
         assert_eq!(cli.get_stages(), Stage::all());
     }
@@ -131,6 +136,7 @@ mod tests {
             stages: vec![],
             all: true,
             exclude: vec![],
+            normal_mode: false,
         };
         assert_eq!(cli.get_stages(), Stage::all());
     }
@@ -141,6 +147,7 @@ mod tests {
             stages: vec![Stage::Bios, Stage::Boot],
             all: false,
             exclude: vec![],
+            normal_mode: false,
         };
         assert_eq!(cli.get_stages(), vec![Stage::Bios, Stage::Boot]);
     }
@@ -151,6 +158,7 @@ mod tests {
             stages: vec![],
             all: false,
             exclude: vec![Stage::Ai],
+            normal_mode: false,
         };
         let result = cli.get_stages();
         assert!(!result.contains(&Stage::Ai));
@@ -163,6 +171,7 @@ mod tests {
             stages: vec![],
             all: true,
             exclude: vec![Stage::Ai, Stage::Cloud],
+            normal_mode: false,
         };
         let result = cli.get_stages();
         assert!(!result.contains(&Stage::Ai));
@@ -176,6 +185,7 @@ mod tests {
             stages: vec![],
             all: false,
             exclude: Stage::all(),
+            normal_mode: false,
         };
         let result = cli.get_stages();
         assert_eq!(result.len(), 0);
