@@ -2,6 +2,7 @@ name: Release
 
 on:
   push:
+    branches: [main]
     tags:
       - 'v*'
   workflow_dispatch:
@@ -10,8 +11,39 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  version:
+    name: Determine Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      tag_name: ${{ steps.get_version.outputs.tag_name }}
+      is_new_release: ${{ steps.check_tag.outputs.is_new }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from Cargo.toml
+        id: get_version
+        run: |
+          VERSION=$(grep '^version' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag_name=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag already exists
+        id: check_tag
+        run: |
+          TAG_NAME="v$(grep '^version' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')"
+          if git ls-remote --tags origin "$TAG_NAME" | grep -q "$TAG_NAME"; then
+            echo "is_new=false" >> "$GITHUB_OUTPUT"
+            echo "Tag $TAG_NAME already exists, skipping release"
+          else
+            echo "is_new=true" >> "$GITHUB_OUTPUT"
+            echo "Tag $TAG_NAME is new, will create release"
+          fi
+
   build:
     name: Build ${{ matrix.target }}
+    needs: version
+    if: needs.version.outputs.is_new_release == 'true' || startsWith(github.ref, 'refs/tags/')
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -70,12 +102,13 @@ jobs:
 
   release:
     name: Create Release
-    needs: build
+    needs: [version, build]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -99,8 +132,17 @@ jobs:
 
           cp artifacts/cursed-install-windows-x86_64.exe/cursed-install.exe release/cursed-install-windows-x86_64.exe
 
+      - name: Create tag
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        env:
+          TAG_NAME: ${{ needs.version.outputs.tag_name }}
+        run: |
+          git tag "$TAG_NAME"
+          git push origin "$TAG_NAME"
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ needs.version.outputs.tag_name }}
           files: release/*
           generate_release_notes: true
