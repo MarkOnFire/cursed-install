@@ -8,12 +8,13 @@ mod installer;
 mod kernel_logs;
 mod log_generator;
 mod messages;
+mod occult_messages;
 mod scanner;
 mod stages;
 mod ui;
 
 use clap::Parser;
-use cli::Cli;
+use cli::{Cli, Flavor};
 use colored::*;
 use escalation::EscalationEngine;
 use installer::Installer;
@@ -31,7 +32,7 @@ fn main() {
     };
 
     if let Err(e) = run_installer(&cli, scan.clone()) {
-        handle_error(e, scan.as_deref());
+        handle_error(e, scan.as_deref(), cli.flavor);
     }
 }
 
@@ -41,15 +42,15 @@ fn run_installer(cli: &Cli, scan: Option<Arc<scanner::ScanResult>>) -> io::Resul
     let mut rng = rand::thread_rng();
     stages.shuffle(&mut rng);
 
-    let mut installer = Installer::new(stages, scan);
+    let mut installer = Installer::new(stages, scan, cli.flavor);
     installer.run()
 }
 
-fn handle_error(e: io::Error, scan: Option<&scanner::ScanResult>) {
+fn handle_error(e: io::Error, scan: Option<&scanner::ScanResult>, flavor: Flavor) {
     if e.kind() == io::ErrorKind::Interrupted {
         // Check if we should show a creepy exit message
         if let Some(scan_data) = scan {
-            let mut engine = EscalationEngine::new(scan_data);
+            let mut engine = EscalationEngine::new(scan_data, flavor);
             if let Some(msg) = engine.select_exit_message() {
                 println!(
                     "\n\n{}",

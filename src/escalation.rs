@@ -1,4 +1,6 @@
+use crate::cli::Flavor;
 use crate::creepy_messages;
+use crate::occult_messages;
 use crate::scanner::ScanResult;
 use colored::*;
 use rand::Rng;
@@ -82,14 +84,28 @@ pub fn zalgo_light(text: &str) -> String {
 
 pub struct EscalationEngine<'a> {
     scan: &'a ScanResult,
+    flavor: Flavor,
     rng: rand::rngs::ThreadRng,
 }
 
 impl<'a> EscalationEngine<'a> {
-    pub fn new(scan: &'a ScanResult) -> Self {
+    pub fn new(scan: &'a ScanResult, flavor: Flavor) -> Self {
         Self {
             scan,
+            flavor,
             rng: rand::thread_rng(),
+        }
+    }
+
+    /// Select the message pool based on the active flavor.
+    fn pick_pool(
+        &self,
+        opsec: &'static [&'static str],
+        occult: &'static [&'static str],
+    ) -> &'static [&'static str] {
+        match self.flavor {
+            Flavor::Opsec => opsec,
+            Flavor::Occult => occult,
         }
     }
 
@@ -100,10 +116,22 @@ impl<'a> EscalationEngine<'a> {
     pub fn select_easter_egg(&mut self, tier: Tier) -> Option<String> {
         let pool = match tier {
             Tier::Baseline => return None, // Baseline uses original messages
-            Tier::Ambient => creepy_messages::AMBIENT_EASTER_EGGS,
-            Tier::Familiar => creepy_messages::FAMILIAR_EASTER_EGGS,
-            Tier::Invasive => creepy_messages::INVASIVE_EASTER_EGGS,
-            Tier::Cosmic => creepy_messages::COSMIC_EASTER_EGGS,
+            Tier::Ambient => self.pick_pool(
+                creepy_messages::AMBIENT_EASTER_EGGS,
+                occult_messages::AMBIENT_EASTER_EGGS,
+            ),
+            Tier::Familiar => self.pick_pool(
+                creepy_messages::FAMILIAR_EASTER_EGGS,
+                occult_messages::FAMILIAR_EASTER_EGGS,
+            ),
+            Tier::Invasive => self.pick_pool(
+                creepy_messages::INVASIVE_EASTER_EGGS,
+                occult_messages::INVASIVE_EASTER_EGGS,
+            ),
+            Tier::Cosmic => self.pick_pool(
+                creepy_messages::COSMIC_EASTER_EGGS,
+                occult_messages::COSMIC_EASTER_EGGS,
+            ),
         };
         self.pick_and_interpolate(pool)
     }
@@ -112,10 +140,22 @@ impl<'a> EscalationEngine<'a> {
     pub fn select_warning(&mut self, tier: Tier) -> Option<String> {
         let pool = match tier {
             Tier::Baseline => return None,
-            Tier::Ambient => creepy_messages::AMBIENT_WARNINGS,
-            Tier::Familiar => creepy_messages::FAMILIAR_WARNINGS,
-            Tier::Invasive => creepy_messages::INVASIVE_WARNINGS,
-            Tier::Cosmic => creepy_messages::COSMIC_WARNINGS,
+            Tier::Ambient => self.pick_pool(
+                creepy_messages::AMBIENT_WARNINGS,
+                occult_messages::AMBIENT_WARNINGS,
+            ),
+            Tier::Familiar => self.pick_pool(
+                creepy_messages::FAMILIAR_WARNINGS,
+                occult_messages::FAMILIAR_WARNINGS,
+            ),
+            Tier::Invasive => self.pick_pool(
+                creepy_messages::INVASIVE_WARNINGS,
+                occult_messages::INVASIVE_WARNINGS,
+            ),
+            Tier::Cosmic => self.pick_pool(
+                creepy_messages::COSMIC_WARNINGS,
+                occult_messages::COSMIC_WARNINGS,
+            ),
         };
         self.pick_and_interpolate(pool)
     }
@@ -124,10 +164,22 @@ impl<'a> EscalationEngine<'a> {
     pub fn select_completion(&mut self, tier: Tier) -> Option<String> {
         let pool = match tier {
             Tier::Baseline => return None,
-            Tier::Ambient => creepy_messages::AMBIENT_COMPLETION,
-            Tier::Familiar => creepy_messages::FAMILIAR_COMPLETION,
-            Tier::Invasive => creepy_messages::INVASIVE_COMPLETION,
-            Tier::Cosmic => creepy_messages::COSMIC_COMPLETION,
+            Tier::Ambient => self.pick_pool(
+                creepy_messages::AMBIENT_COMPLETION,
+                occult_messages::AMBIENT_COMPLETION,
+            ),
+            Tier::Familiar => self.pick_pool(
+                creepy_messages::FAMILIAR_COMPLETION,
+                occult_messages::FAMILIAR_COMPLETION,
+            ),
+            Tier::Invasive => self.pick_pool(
+                creepy_messages::INVASIVE_COMPLETION,
+                occult_messages::INVASIVE_COMPLETION,
+            ),
+            Tier::Cosmic => self.pick_pool(
+                creepy_messages::COSMIC_COMPLETION,
+                occult_messages::COSMIC_COMPLETION,
+            ),
         };
         self.pick_and_interpolate(pool)
     }
@@ -137,14 +189,21 @@ impl<'a> EscalationEngine<'a> {
         if tier != Tier::Cosmic {
             return None;
         }
-        let pool = creepy_messages::COSMIC_CYCLE_HEADERS;
+        let pool = self.pick_pool(
+            creepy_messages::COSMIC_CYCLE_HEADERS,
+            occult_messages::COSMIC_CYCLE_HEADERS,
+        );
         let raw = self.pick_and_interpolate(pool)?;
         Some(raw.replace("{cycle}", &cycle.to_string()))
     }
 
     /// Exit message for Ctrl+C — only used at Cosmic tier.
     pub fn select_exit_message(&mut self) -> Option<String> {
-        self.pick_and_interpolate(creepy_messages::COSMIC_EXIT_MESSAGES)
+        let pool = self.pick_pool(
+            creepy_messages::COSMIC_EXIT_MESSAGES,
+            occult_messages::COSMIC_EXIT_MESSAGES,
+        );
+        self.pick_and_interpolate(pool)
     }
 
     // ── Interpolation ───────────────────────────────────────────────────

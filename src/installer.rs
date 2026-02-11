@@ -1,4 +1,4 @@
-use crate::cli::Stage;
+use crate::cli::{Flavor, Stage};
 use crate::escalation::{zalgo_light, EscalationEngine, Tier, tier_color};
 use crate::messages::{EASTER_EGGS, RETRY_MESSAGES, WARNINGS};
 use crate::scanner::ScanResult;
@@ -21,14 +21,16 @@ pub struct Installer {
     rng: rand::rngs::ThreadRng,
     selected_stages: Vec<Stage>,
     scan: Option<Arc<ScanResult>>,
+    flavor: Flavor,
 }
 
 impl Installer {
-    pub fn new(stages: Vec<Stage>, scan: Option<Arc<ScanResult>>) -> Self {
+    pub fn new(stages: Vec<Stage>, scan: Option<Arc<ScanResult>>, flavor: Flavor) -> Self {
         Self {
             rng: rand::thread_rng(),
             selected_stages: stages,
             scan,
+            flavor,
         }
     }
 
@@ -74,7 +76,7 @@ impl Installer {
         // Try creepy message first if we have scan data and tier > Baseline
         if tier != Tier::Baseline {
             if let Some(scan) = &self.scan {
-                let mut engine = EscalationEngine::new(scan);
+                let mut engine = EscalationEngine::new(scan, self.flavor);
                 if let Some(msg) = engine.select_easter_egg(tier) {
                     println!();
                     let display = if tier == Tier::Cosmic {
@@ -110,7 +112,7 @@ impl Installer {
         // Try creepy warning first if we have scan data and tier > Baseline
         if tier != Tier::Baseline {
             if let Some(scan) = &self.scan {
-                let mut engine = EscalationEngine::new(scan);
+                let mut engine = EscalationEngine::new(scan, self.flavor);
                 if let Some(msg) = engine.select_warning(tier) {
                     let display = if tier == Tier::Cosmic {
                         zalgo_light(&msg)
@@ -156,7 +158,7 @@ impl Installer {
     fn show_cycle_header(&mut self, cycle: u32, tier: Tier) {
         if tier == Tier::Cosmic {
             if let Some(scan) = &self.scan {
-                let mut engine = EscalationEngine::new(scan);
+                let mut engine = EscalationEngine::new(scan, self.flavor);
                 if let Some(header) = engine.select_cycle_header(tier, cycle) {
                     let display = zalgo_light(&header);
                     println!(
@@ -199,7 +201,7 @@ impl Installer {
     fn show_completion(&mut self, tier: Tier) {
         if tier != Tier::Baseline {
             if let Some(scan) = &self.scan {
-                let mut engine = EscalationEngine::new(scan);
+                let mut engine = EscalationEngine::new(scan, self.flavor);
                 if let Some(msg) = engine.select_completion(tier) {
                     let display = if tier == Tier::Cosmic {
                         zalgo_light(&msg)
@@ -278,6 +280,6 @@ impl Installer {
 
 impl Default for Installer {
     fn default() -> Self {
-        Self::new(Stage::all(), None)
+        Self::new(Stage::all(), None, Flavor::Opsec)
     }
 }

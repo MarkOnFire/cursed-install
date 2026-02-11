@@ -1,6 +1,14 @@
 use clap::{Parser, ValueEnum};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum Flavor {
+    /// Surveillance and data-watching theme (default)
+    Opsec,
+    /// Occult ritual and summoning theme
+    Occult,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum Stage {
     /// BIOS initialization
     Bios,
@@ -96,6 +104,10 @@ pub struct Cli {
     /// Disable awareness mode (no filesystem scanning)
     #[arg(long = "normal", short = 'n')]
     pub normal_mode: bool,
+
+    /// Message flavor for awareness mode
+    #[arg(long, value_enum, default_value_t = Flavor::Opsec)]
+    pub flavor: Flavor,
 }
 
 impl Cli {
@@ -126,6 +138,7 @@ mod tests {
             all: false,
             exclude: vec![],
             normal_mode: false,
+            flavor: Flavor::Opsec,
         };
         assert_eq!(cli.get_stages(), Stage::all());
     }
@@ -137,6 +150,7 @@ mod tests {
             all: true,
             exclude: vec![],
             normal_mode: false,
+            flavor: Flavor::Opsec,
         };
         assert_eq!(cli.get_stages(), Stage::all());
     }
@@ -148,6 +162,7 @@ mod tests {
             all: false,
             exclude: vec![],
             normal_mode: false,
+            flavor: Flavor::Opsec,
         };
         assert_eq!(cli.get_stages(), vec![Stage::Bios, Stage::Boot]);
     }
@@ -159,6 +174,7 @@ mod tests {
             all: false,
             exclude: vec![Stage::Ai],
             normal_mode: false,
+            flavor: Flavor::Opsec,
         };
         let result = cli.get_stages();
         assert!(!result.contains(&Stage::Ai));
@@ -172,6 +188,7 @@ mod tests {
             all: true,
             exclude: vec![Stage::Ai, Stage::Cloud],
             normal_mode: false,
+            flavor: Flavor::Opsec,
         };
         let result = cli.get_stages();
         assert!(!result.contains(&Stage::Ai));
@@ -186,6 +203,7 @@ mod tests {
             all: false,
             exclude: Stage::all(),
             normal_mode: false,
+            flavor: Flavor::Opsec,
         };
         let result = cli.get_stages();
         assert_eq!(result.len(), 0);
